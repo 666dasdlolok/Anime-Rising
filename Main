@@ -1,0 +1,592 @@
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local verny = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vernyfx/ASDF41234/main/ASD321FS1GS"))()
+
+verny.call()
+verny:CreateFile()
+verny:LoadFile()
+
+local main = verny.create({Title = "Verny Hub",})
+
+local tab = main.tab({
+	Title = "Auto Farm",
+	Desc = "Main"
+})
+
+
+local Client = game.Players.LocalPlayer
+
+
+local VirtualUser=game:service'VirtualUser'
+ game:service('Players').LocalPlayer.Idled:connect(function()
+ VirtualUser:CaptureController()
+ VirtualUser:ClickButton2(Vector2.new())
+ end)
+
+ function GetCurrentMap()
+    for i,v in pairs(game:GetService("Workspace").Game.Maps:GetChildren()) do
+        if v:IsA("Model") then
+            return v.Name
+        end
+    end
+end
+
+
+ local maps = {}
+
+ for i,v in ipairs(game:GetService("Workspace").Game.Maps:GetChildren()) do
+    table.insert(maps, v.Name)
+ end
+
+ local enemies = {}
+
+ for i,v in ipairs(game:GetService("Workspace").Game.NPC[GetCurrentMap()]:GetChildren()) do
+    if not table.find(enemies, v.Name) then
+        table.insert(enemies, v.Name)
+    end
+ end
+
+
+ local page = tab.page({Title = "Select"})
+
+
+
+
+
+local Enemies = page.Dropdown({
+	Title = "Select Enemies",
+	Item = enemies,
+	Mode = false,
+	callback = function(x) 
+		_G.Enemies = x
+	end,
+})
+
+
+
+
+
+page.Button({
+	Title = "Refresh Enemies",
+	callback = function() 
+
+        local enemies2 = {}
+
+        for i,v in ipairs(game:GetService("Workspace").Game.NPC[GetCurrentMap()]:GetChildren()) do
+            if not table.find(enemies2, v.Name) then
+                table.insert(enemies2, v.Name)
+            end
+         end
+
+        task.wait(.1)
+		Enemies:Refresh(enemies, enemies2)
+	end,
+})
+
+local page1 = tab.page({Title = "Auto Farm"})
+
+local Toggle = page1.Toggle({
+	Title = "Auto Click (Can Enable With AutoFarm)",
+	Default = false,
+	callback = function(x) 
+		_G.AutoClick = x
+	end,
+})
+
+local CanClick = true
+task.spawn(function()
+    while task.wait() do
+        pcall(function()
+            for i,v in pairs(game:GetService("Workspace").Game.NPC[GetCurrentMap()]:GetChildren()) do
+                if v.Name == _G.Enemies then
+                    pcall(function()
+                        if v.Head.NpcBillboard.HealthBar.Health.Text ~= "Dead" then
+                            local Magnitude = Client:DistanceFromCharacter(v:GetPivot().Position)
+                            local Distance = 10
+                            if Magnitude < Distance then
+                                CanClick = false
+                            else
+                                CanClick = true
+                            end
+                        end
+                    end)
+                end
+            end
+        end)
+        task.wait(.1)
+    end
+end)
+
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoClick and CanClick then
+            local args = {
+                [1] = "Punch"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(.01)
+        end
+    end
+end)
+
+
+
+
+local Toggle = page1.Toggle({
+	Title = "Auto Farm Selected Mob",
+	Default = false,
+	callback = function(x) 
+		_G.AutoFarm1 = x
+	end,
+})
+
+
+task.spawn(function()
+    while task.wait() do
+        if _G.Enemies ~= nil and _G.AutoFarm1 then
+            for i,v in pairs(game:GetService("Workspace").Game.NPC[GetCurrentMap()]:GetChildren()) do
+                if v.Name == _G.Enemies or v.Name:find(_G.Enemies) then
+                    pcall(function()
+                        if v.Head.NpcBillboard.HealthBar.Health.Text ~= "Dead" then
+                            v.Name = _G.Enemies.. math.random(1,555)
+                            pcall(function()
+                                if v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" then
+                                    v.Name = _G.Enemies
+                                end
+                            end)
+                            repeat
+                                Client.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+                                local args = {
+                                    [1] = "Punch",
+                                    [2] = workspace.Game.NPC[GetCurrentMap()][v.Name]
+                                }
+                                game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                                task.wait()
+                                pcall(function()
+                                    if v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" then
+                                        v.Name = _G.Enemies
+                                    end
+                                end)
+                            until v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" or _G.AutoFarm1 == false
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end)
+
+
+
+
+local Toggle = page1.Toggle({
+	Title = "Auto Farm Current Map",
+	Default = false,
+	callback = function(x) 
+		_G.AutoFarm2 = x
+	end,
+})
+
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoFarm2 then
+            for i,v in pairs(game:GetService("Workspace").Game.NPC[GetCurrentMap()]:GetChildren()) do
+                local OldName = v.Name
+                task.wait()
+                    pcall(function()
+                    if v.Head.NpcBillboard.HealthBar.Health.Text ~= "Dead" then
+                        v.Name = OldName.. math.random(1,555)
+                        pcall(function()
+                            if v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" then
+                                v.Name = OldName
+                            end
+                        end)
+                        repeat
+                            Client.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+                            local args = {
+                                [1] = "Punch",
+                                [2] = workspace.Game.NPC[GetCurrentMap()][v.Name]
+                            }
+                            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                            task.wait()
+                            pcall(function()
+                                if v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" then
+                                    v.Name = OldName
+                                end
+                            end)
+                        until v.Head.NpcBillboard.HealthBar.Health.Text == "Dead" or _G.AutoFarm2 == false
+                    end
+                end)
+            end
+        end
+    end
+end)
+
+
+local tab3 = main.tab({
+	Title = "Pets",
+	Desc = "Pets"
+})
+
+local page3 = tab3.page({Title = "Pets"})
+
+
+local Toggle = page3.Toggle({
+	Title = "Auto Equip Best Pets (Every 10 Seconds)",
+	Default = false,
+	callback = function(x) 
+		_G.AutoBestPets = x
+	end,
+})
+
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoBestPets then
+            local args = {
+                [1] = "EquipBest"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(10)
+        end
+    end
+end)
+
+
+
+
+
+
+
+local tab4 = main.tab({
+	Title = "Local Player",
+	Desc = "Walkspeed"
+})
+
+local page4 = tab4.page({Title = "Local Player"})
+
+local Slider = page4.Slider({
+	Title = "Walkspeed",
+	Min = 10,
+	Max = 500,
+	Default = 50,
+	callback = function(x) 
+		_G.Walkspeed = x
+	end,
+})
+
+local Slider = page4.Slider({
+	Title = "Jumppower",
+	Min = 10,
+	Max = 500,
+	Default = 50,
+	callback = function(x) 
+		_G.Jumppower = x
+	end,
+})
+
+
+local Toggle = page4.Toggle({
+	Title = "Toggle Walkspeed",
+	Default = false,
+	callback = function(x) 
+		_G.ToggleWs = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.ToggleWs and _G.Walkspeed ~= nil then
+            Client.Character.Humanoid.WalkSpeed = _G.Walkspeed
+            task.wait()
+        end
+    end
+end)
+
+
+local Toggle = page4.Toggle({
+	Title = "Toggle Jumppower",
+	Default = false,
+	callback = function(x) 
+		_G.ToggleJs = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.ToggleJs and _G.Jumppower ~= nil then
+            Client.Character.Humanoid.JumpPower = _G.JumpPower
+            task.wait()
+        end
+    end
+end)
+
+
+local tab5 = main.tab({
+	Title = "Usefull Stuff",
+	Desc = "Kinda Misc"
+})
+
+local page5 = tab5.page({Title = "Essence / Rankup"})
+
+
+local Toggle = page5.Toggle({
+	Title = "Auto Rankup / Essence",
+	Default = false,
+	callback = function(x) 
+		_G.AutoEssence = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoEssence then
+            local args = {
+                [1] = "Essence"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(5)
+        end
+    end
+end)
+
+local page5 = tab5.page({Title = "Upgrades"})
+
+local Toggle = page5.Toggle({
+	Title = "Auto Upgrade Power",
+	Default = false,
+	callback = function(x) 
+		_G.AutoUpgrade1 = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoUpgrade1 then
+            local args = {
+                [1] = "Upgrade",
+                [2] = "Power"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(5)
+        end
+    end
+end)
+
+local Toggle = page5.Toggle({
+	Title = "Auto Upgrade Coins",
+	Default = false,
+	callback = function(x) 
+		_G.AutoUpgrade2 = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoUpgrade2 then
+            local args = {
+                [1] = "Upgrade",
+                [2] = "Coin"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(5)
+        end
+    end
+end)
+
+local Toggle = page5.Toggle({
+	Title = "Auto Upgrade Inventory",
+	Default = false,
+	callback = function(x) 
+		_G.AutoUpgrade3 = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoUpgrade3 then
+            local args = {
+                [1] = "Upgrade",
+                [2] = "Inventory"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(5)
+        end
+    end
+end)
+
+local page5 = tab5.page({Title = "Misc"})
+
+local Toggle = page5.Toggle({
+	Title = "Auto Claim Daily Chest",
+	Default = false,
+	callback = function(x) 
+		_G.AutoDailyChest = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoDailyChest then
+            local args = {
+                [1] = "Daily",
+                [2] = "Ready"
+            }
+            game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+            task.wait(30)
+        end
+    end
+end)
+
+
+local Toggle = page5.Toggle({
+	Title = "Auto Claim Achivements",
+	Default = false,
+	callback = function(x) 
+		_G.AutoAchivements = x
+	end,
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoAchivements then
+            for i = 1,6 do
+                local args = {
+                    [1] = "AchivimentClain",
+                    [2] = {
+                        ["Index"] = tostring(i),
+                        ["Type"] = "TimePlayed"
+                    }
+                }
+                game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                task.wait(.5)
+                local args = {
+                    [1] = "AchivimentClain",
+                    [2] = {
+                        ["Index"] = tostring(i),
+                        ["Type"] = "Drops"
+                    }
+                }
+                game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                task.wait(.5)
+                local args = {
+                    [1] = "AchivimentClain",
+                    [2] = {
+                        ["Index"] = tostring(i),
+                        ["Type"] = "DamageDealt"
+                    }
+                }
+                game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                task.wait(.5)
+                local args = {
+                    [1] = "AchivimentClain",
+                    [2] = {
+                        ["Index"] = tostring(i),
+                        ["Type"] = "Defeated"
+                    }
+                }
+                game:GetService("ReplicatedStorage").Server:FireServer(unpack(args))
+                task.wait(1.5)
+            end
+        end
+    end
+end)
+
+
+
+page5.Button({
+	Title = "Hide Name",
+	callback = function() 
+		game:GetService("Workspace")[Client.Name].Head.OverHead.PlayerOverHead.PlayerName:Destroy()
+	end,
+})
+
+
+
+local tab6 = main.tab({
+	Title = "Auto Webhook",
+	Desc = "Webhook"
+})
+
+local page6 = tab6.page({Title = "Webhook"})
+
+
+page6.TextBox({
+    Title = "Webhook URL",
+    callback = function(x) 
+        _G.Web = x
+    end,
+})
+
+local Slider = page6.Slider({
+	Title = "Time Each Webhook",
+	Min = 120,
+	Max = 1200,
+	Default = 120,
+	callback = function(x) 
+		_G.WebhookTime = x
+	end,
+})
+
+
+local Toggle = page6.Toggle({
+	Title = "Auto Send Webhook",
+	Default = false,
+	callback = function(x) 
+        _G.AutoSendWebhook = x
+	end,
+})
+
+
+task.spawn(function()
+    while wait() do
+       if _G.AutoSendWebhook and _G.WebhookTime ~= nil and _G.Web ~= nil then
+        local text = {
+            "**Game: ** ".. nameOfGame.Name,
+            "**General Stats:**",
+            "*Current Power: * ".. game:GetService("Players").LocalPlayer.leaderstats.Power.Value,
+            "*Current Coins: * ".. game:GetService("Players").LocalPlayer.leaderstats.Coin.Value,
+            "*Current Essence: * ".. game:GetService("Players").LocalPlayer.leaderstats.Essence.Value,
+            "*Current  * ".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.StatsFrame.Dmg.Text,
+            "**Total Stats:**",
+            "** **".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.CenterFrame.Stats.MainFrame.Frame.TotalPower.Text,
+            "** **".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.CenterFrame.Stats.MainFrame.Frame.TotalCoins.Text,
+            "**Total **".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.CenterFrame.Stats.MainFrame.Frame.EnemyDefeated.Text,
+            "**Total **".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.CenterFrame.Stats.MainFrame.Frame.TimePlayed.Text,
+            "**Current **".. game:GetService("Players").LocalPlayer.PlayerGui.Ui.CenterFrame.Stats.MainFrame.Frame.Luck.Text,
+
+        }
+          HttpService = game:GetService("HttpService")
+          Webhook_URL = _G.Web
+ 
+          local responce = request(
+             {
+             
+                Url = Webhook_URL,
+                Method = "POST",
+                Headers = {
+                   ["Content-Type"] = "application/json"
+                },
+                Body = HttpService:JSONEncode({
+                   ["content"] = "",
+                   ["embeds"] = {{
+                      ["title"] = "Username: ||"..game.Players.LocalPlayer.Name.."||",
+                      ["description"] = "Stats For: ||".. game.Players.LocalPlayer.Name.."||",
+                      ["type"] = "rich",
+                      ["color"] = tonumber(0xffffff),
+                      ["fields"] = {
+                         {
+                            ["name"] = "Stats",
+                            ["value"] = table.concat(text,'\n'),
+                            ["inline"] = true
+                         }
+                      }
+                   }}
+                })
+             }
+             )
+          task.wait(_G.WebhookTime)
+       end
+    end
+ end)
